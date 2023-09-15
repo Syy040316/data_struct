@@ -5,52 +5,99 @@
 # include "stdio.h"
 # include "stdlib.h"
 
-typedef struct List{
-    int length;
-    char* data;
-    int num;
-}List;
+#define HashList List
+#define HashList HashList
+typedef struct Linklist{
+    
+    char data;
+    struct Linklist* next;
+}Linklist;
+Linklist * initlist(){
+    Linklist* link = (Linklist*) malloc(sizeof (Linklist));
+    link -> data = 0;
+    link -> next = NULL;
+    return link;
+}
 
-List * initList(int length){
-    List* list = (List*) malloc(sizeof (List));
+
+typedef struct HashList{
+    int length;
+    Linklist ** data;
+    int num;
+}HashList;
+
+HashList * initList(int length){
+    HashList* list = (HashList*) malloc(sizeof (HashList));
     list -> length = length;
     list -> num = 0;
-    list -> data = (char*) malloc( sizeof (char) * length);
+    list -> data = (Linklist **) malloc( sizeof (Linklist*) * length);
     for (int i = 0; i < length; i++){
-        list -> data[i] = 0;
+        list -> data[i] = initlist();
     }
     return list;
 }
-int hash(int data, List* list){
+
+int hash(int data, HashList* list){
     return data % list -> length;
 }
 
-int put(List* list, char data){
-    if (list -> num == list -> length) return -1;
-    int index = hash(data, list);
-    if (list -> data[index] != 0){
-        int count = 1;
-        while (list -> data[index] != 0){
-            index = hash(hash(data, list) + count, list);
-            count ++;
-        }
 
-    }
-    list -> data[index] = data;
+void insert(Linklist* link, char data){
+    Linklist * node = initlist();
+    node -> data = data;
+    while (link -> next != NULL) link = link -> next;
+    link -> next = node;
+}
+
+
+void put(HashList* list, char data){
+
+    int index = hash(data, list);
+    insert(list->data[index],data);
     list -> num ++;
+}
+
+void printHash(HashList* list){
+    for (int i = 0; i < list -> length; i++){
+        while (list -> data[i] -> next != NULL){
+            printf("%c \x20", list -> data[i] -> next -> data);
+            list -> data[i] = list -> data[i] -> next;
+        }
+        printf("\n");
+    }
+}
+
+int deleteHash(HashList* list, char data){
+    int index = hash(data, list);
+    Linklist* l1 = list -> data[index];
+    Linklist* l2 = list -> data[index] -> next;
+    while (l2){
+        if (l2 -> data == data)
+        {
+
+            l1 -> next = l2 -> next;
+            free(l2);
+            return 1;
+        }
+        l1 = l2;
+        l2 = l2 -> next;
+    }
+    return -1;
+
 }
 
 
 int main()
 {
-    List * list = initList(5);
+    HashList * list = initList(5);
     put(list, 'A');
     put(list, 'B');
     put(list, 'C');
     put(list, 'D');
     put(list, 'E');
     put(list, 'F');
-    printf("put(list, 'G') = %d\n",put(list, 'G'));
-   for (int i = 0; i < list -> num; i++) printf ("%c\n", list -> data[i]);
+    deleteHash(list, 'F');
+    printHash(list);
     return 0;
 }
+
